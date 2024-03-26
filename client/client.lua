@@ -10,7 +10,7 @@ SetRandomTrains(true)  -- enable
 if Config.General.showStationBlips then
 	for _, coord in pairs(MetroLocations) do
 		makeBlip({
-			coords = coord,
+			coords = coord.x,coord.y,coord.z,
 			sprite = 783,
 			col = 1,
 			scale = 0.5,
