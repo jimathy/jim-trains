@@ -13,7 +13,7 @@ function LoadTrainModels() -- Load train models
     }) do
         loadModel(model)
     end
-    if Config.System.Debug then print("Train Models Loaded") end
+    debugPrint("Train Models Loaded")
 end
 
 function getClosest(coords)

@@ -3,7 +3,7 @@ local trainTable, entPool, hasTicket, freightStop, getOffNextStop = {}, {}, fals
 LoadTrainModels()
 for _, i in pairs({ 0, 3 }) do -- pick the only looping tracks
 	SwitchTrainTrack(i, true)
-	SetTrainTrackSpawnFrequency(i, 12000)
+	SetTrainTrackSpawnFrequency(i, 480000)
 end
 SetRandomTrains(true)  -- enable
 
@@ -23,7 +23,6 @@ if Config.General.showStationBlips then
 end
 
 CreateThread(function()
-
 	while Config.General.ShowTrainBlips do
 		for _, v in pairs(GetGamePool('CVehicle')) do
 			for _, model in pairs({`freight`, `freight2`, `metrotrain`}) do
@@ -62,8 +61,6 @@ CreateThread(function()
 	end
 end)
 
-local pedPool = {}
-local canRemovePeds = false
 CreateThread(function()
 	while true do
 		for _, train in pairs(trainTable) do
@@ -83,7 +80,7 @@ CreateThread(function()
 					SetPedFleeAttributes(driver, true)
 					SetEntityInvincible(driver, true)
 				end
-				SetTrainsForceDoorsOpen(false)
+				SetTrainsForceDoorsOpen(true)
 				SetEntityInvincible(train, true) -- set train invincible
 				SetVehicleDoorsLocked(train, 10)
 			end
@@ -94,34 +91,36 @@ end)
 
 function stopTrain(train) -- stop train, set timer, start train again
 	if freightStop[train] then return end
-	if Config.System.Debug then print("^5Debug^7: ^2Stopping Train ^7'^6"..train.."^7'") end
+	debugPrint("^5Debug^7: ^2Stopping Train ^7'^6"..train.."^7'")
 	freightStop[train] = true
 	local speed = GetEntitySpeed(train)
-	while speed > 0.0 do speed -= 0.05 SetTrainSpeed(train, speed) Wait(0) end
-	if Config.System.Debug then print("^5Debug^7: ^2Train fully stopped ^7'^6"..train.."^7'") end
+	while speed > 0.0 do speed -= 0.05 SetTrainCruiseSpeed(train, speed) Wait(0) end
+	SetTrainsForceDoorsOpen(false)
+	debugPrint("^5Debug^7: ^2Train fully stopped ^7'^6"..train.."^7'")
 	local stoppedTimer = GetGameTimer()
-	if Config.System.Debug then print("^5Debug^7: ^2Starting Train Stop timeout ^7'^6"..train.."^7'") end
+	debugPrint("^5Debug^7: ^2Starting Train Stop timeout ^7'^6"..train.."^7'")
 	while true do
-		SetTrainSpeed(train, -0.01)
+		SetTrainCruiseSpeed(train, -0.01)
 		if (GetGameTimer() - stoppedTimer < (40 * 1000)) then -- 40 second timer
 		else break end
 		Wait(0)
 	end
-	if Config.System.Debug then print("^5Debug^7: ^2Starting Train ^7'^6"..train.."^7'") end
-	while speed < 15 do speed += 0.01 SetTrainSpeed(train, speed) Wait(0) end
+	debugPrint("^5Debug^7: ^2Starting Train ^7'^6"..train.."^7'")
+	while speed < 15 do speed += 0.01 SetTrainCruiseSpeed(train, speed) Wait(0) end
 	local timer = GetGameTimer()
 	while (GetGameTimer() - timer < 5000) do Wait(0) end -- extra timer to let train leave station before allowing it to stop again
-	if Config.System.Debug then print("^5Debug^7: ^2Revmoing stopped train from pool ^7'^6"..train.."^7'") end
+	debugPrint("^5Debug^7: ^2Revmoing stopped train from pool ^7'^6"..train.."^7'")
 	freightStop[train] = nil
 end
 
 if Config.General.requireMetroTicket then
 	CreateThread(function()
 		for k, v in pairs(TicketPurchase) do
-			local name = GetCurrentResourceName()..":TicketPurchase:"..k
+			local name = getScript()..":TicketPurchase:"..k
 			createBoxTarget({name,
-			vec3(v.coords.x, v.coords.y, v.coords.z-1), v.w or 1.0, v.d or 0.8,
-			{ name = name, heading = v.coords.w, debugPoly = Config.System.Debug, minZ = v.coords.z-1.0, maxZ = v.coords.z+1.5 }, }, {
+				vec3(v.coords.x, v.coords.y, v.coords.z-1), v.w or 1.0, v.d or 0.8,
+				{ name = name,
+				heading = v.coords.w, debugPoly = debugMode, minZ = v.coords.z-1.0, maxZ = v.coords.z+1.5 }, }, {
 				{
 					label = Loc[Config.Lan].buy,
 					icon = "fas fa-ticket",
@@ -195,7 +194,7 @@ function buyTicket()
 	local hasCash = (Config.General.chargeBank and Player.bank >= Config.General.chargeAmount) or (not Config.General.chargeBank and Player.cash >= Config.General.chargeAmount)
 	if hasCash then
 		hasTicket = true
-		TriggerServerEvent(GetCurrentResourceName()..":server:ChargePlayer", Config.General.chargeAmount, Config.General.chargeBank and "bank" or "cash")
+		TriggerServerEvent(getScrpit()..":server:buyTicket", Config.General.chargeAmount, Config.General.chargeBank and "bank" or "cash")
 		triggerNotify(Loc[Config.Lan].lsmetro, Loc[Config.Lan].purchased, "success")
 	else
 		triggerNotify(Loc[Config.Lan].lsmetro, Loc[Config.Lan].nocash, "error")
