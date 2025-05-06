@@ -1,11 +1,13 @@
 name "Jim-Trains"
 author "Jimathy"
-version "1.0"
-description 'Train Script by Jimathy'
-use_experimental_fxv2_oal 'yes'
+version "1.5"
+description 'Train Script'
 fx_version "cerulean"
 game "gta5"
 lua54 'yes'
+use_experimental_fxv2_oal 'yes'
+
+server_script '@oxmysql/lib/MySQL.lua'
 
 shared_scripts {
 	'locales/*.lua',
@@ -18,10 +20,8 @@ shared_scripts {
     '@qbx_core/modules/playerdata.lua',
 
     --Jim Bridge
-    '@jim_bridge/exports.lua',
-    '@jim_bridge/functions.lua',
-    '@jim_bridge/wrapper.lua',
-    '@jim_bridge/crafting.lua',
+    '@jim_bridge/starter.lua',
+
 	'shared/*.lua',
 }
 client_scripts {
@@ -33,4 +33,8 @@ client_scripts {
     'client/*.lua'
 }
 
-dependancy 'jim_bridge'
+server_scripts {
+    'server.lua'
+}
+
+dependency 'jim_bridge'
