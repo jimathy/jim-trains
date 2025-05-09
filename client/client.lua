@@ -194,7 +194,7 @@ function buyTicket()
 	local hasCash = (Config.General.chargeBank and Player.bank >= Config.General.chargeAmount) or (not Config.General.chargeBank and Player.cash >= Config.General.chargeAmount)
 	if hasCash then
 		hasTicket = true
-		TriggerServerEvent(getScrpit()..":server:buyTicket", Config.General.chargeAmount, Config.General.chargeBank and "bank" or "cash")
+		TriggerServerEvent(getScript()..":server:buyTicket", Config.General.chargeAmount, Config.General.chargeBank and "bank" or "cash")
 		triggerNotify(Loc[Config.Lan].lsmetro, Loc[Config.Lan].purchased, "success")
 	else
 		triggerNotify(Loc[Config.Lan].lsmetro, Loc[Config.Lan].nocash, "error")
